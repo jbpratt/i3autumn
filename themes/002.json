@@ -1,0 +1,31 @@
+{
+    "xresources": {
+        "background": "#162025",
+        "foreground": "#bfbfbf",
+        "cursorcolor": "#bfbfbf",
+        "color0": "#162025",
+        "color1": "#393843",
+        "color2": "#39402e",
+        "color3": "#39402e",
+        "color4": "#75404b",
+        "color5": "#4c584a",
+        "color6": "#662b37",
+        "color7": "#bfbfbf",
+        "color8": "#5d6160",
+        "color9": "#662b37",
+        "color10": "#39402e",
+        "color11": "#39402e",
+        "color12": "#75404b",
+        "color13": "#4c584a",
+        "color14": "#4c584a",
+        "color15": "#bfbfbf"
+    },
+    "i3wm": {
+        "client.background": "#162025",
+        "client.focused": "#bfbfbf #162025 #bfbfbf #39402e #39402e",
+        "client.unfocused": "#bfbfbf #162025 #bfbfbf #75404b #75404b",
+        "client.focused_inactive": "#bfbfbf #162025 #bfbfbf #75404b #75404b",
+        "client.urgent": "#bfbfbf #162025 #bfbfbf #75404b #75404b",
+        "client.placeholder": "#bfbfbf #162025 #bfbfbf #75404b #75404b"
+    }
+}
