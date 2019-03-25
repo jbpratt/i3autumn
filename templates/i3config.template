@@ -332,7 +332,7 @@ bar {
 	strip_workspace_numbers yes
 
     colors {
-        background {background} 
+        background {{.ClientBackground}} 
         statusline #F9FAF9
         separator  #454947
 
@@ -350,13 +350,13 @@ bindsym $mod+m bar mode toggle
 
 # Theme colors
 # class                   border  backgr. text    indic.   child_border
-  client.focused          {client.focused}
-  client.focused_inactive {client.focused_inactive}
-  client.unfocused        {client.unfocused}
-  client.urgent           {client.urgent} 
-  client.placeholder      {client.placeholder} 
+  client.focused          {{.ClientFocused}}
+  client.focused_inactive {{.ClientFocusedInactive}}
+  client.unfocused        {{.ClientUnfocused}}
+  client.urgent           {{.ClientUrgent}}
+  client.placeholder      {{.ClientPlaceholder}} 
 
-  client.background       {client.background} 
+  client.background       {{.ClientBackground}} 
 
 #############################
 ### settings for i3-gaps: ###
