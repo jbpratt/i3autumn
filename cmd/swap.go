@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
+
+	template "text/template"
 
 	"github.com/spf13/cobra"
 )
@@ -17,7 +19,7 @@ type Config struct {
 type Xresource struct {
 	Background  string `json:"background"`
 	Foreground  string `json:"foreground"`
-	Cursorcolor string `json:"cursorcolor"`
+	CursorColor string `json:"cursorcolor"`
 	Color0      string `json:"color0"`
 	Color1      string `json:"color1"`
 	Color2      string `json:"color2"`
@@ -49,7 +51,6 @@ var swapCmd = &cobra.Command{
 	Use:   "swap",
 	Short: "Swap resource files with chosen theme",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(args)
 		data, err := ioutil.ReadFile("./themes/" + args[0] + ".json")
 		if err != nil {
 			log.Fatal(err)
@@ -59,7 +60,11 @@ var swapCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(config)
+		t := template.Must(template.ParseFiles("templates/xresources.template"))
+		err = t.Execute(os.Stdout, config.Xresource)
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 

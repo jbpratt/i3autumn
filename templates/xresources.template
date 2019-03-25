@@ -1,23 +1,23 @@
-*background:                      {background}
-*foreground:                      {foreground}
-*cursorColor:                     {cursorColor}
+*background:                      {{.Background}}
+*foreground:                      {{.Foreground}}
+*cursorColor:                     {{.CursorColor}}
 
-*color0:                          {color0}
-*color8:                          {color9}
-*color1:                          {color1}  
-*color9:                          {color9} 
-*color2:                          {color2} 
-*color10:                         {color10} 
-*color3:                          {color3} 
-*color11:                         {color11} 
-*color4:                          {color4} 
-*color12:                         {color12} 
-*color5:                          {color5} 
-*color13:                         {color13} 
-*color6:                          {color6} 
-*color14:                         {color14} 
-*color7:                          {color7} 
-*color15:                         {color15}
+*color0:                          {{.Color0}}
+*color8:                          {{.Color9}}
+*color1:                          {{.Color1}}
+*color9:                          {{.Color9}}
+*color2:                          {{.Color2}}
+*color10:                         {{.Color10}}
+*color3:                          {{.Color3}}
+*color11:                         {{.Color11}}
+*color4:                          {{.Color4}}
+*color12:                         {{.Color12}}
+*color5:                          {{.Color5}}
+*color13:                         {{.Color13}}
+*color6:                          {{.Color6}}
+*color14:                         {{.Color14}}
+*color7:                          {{.Color7}}
+*color15:                         {{.Color15}}
 
 URxvt.font:                       9x15,xft:TerminessTTFNerdFontMono
 
@@ -39,12 +39,12 @@ URxvt.matcher.button: 1
 
 
 URxvt.depth:                      32
-URxvt.background:                 [100]{background}
+URxvt.background:                 [100]{{.Background}}
 URxvt*scrollBar:                  false
 URxvt*mouseWheelScrollPage:       false
 URxvt*cursorBlink:                true
-URxvt*background:                 {background} 
-URxvt*foreground:                 {foreground}
+URxvt*background:                 {{.Background}}
+URxvt*foreground:                 {{.Foreground}}
 URxvt*saveLines:                  5000
 
 URxvt.iso14755:                   false
@@ -58,4 +58,3 @@ URxvt.keysym.Control-Up:          \033[1;5A
 URxvt.keysym.Shift-Control-Up:    \033[1;6A
 URxvt.keysym.Control-Down:        \033[1;5B
 URxvt.keysym.Shift-Control-Down:  \033[1;6B
-
