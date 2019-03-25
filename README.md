@@ -8,3 +8,5 @@ TODO:
   - Ability to load custom themes
   - Read json file and replace contents of .Xresources, 
   - Refresh applications
+  - Flag for which to swap
+  - Back up prior to swapping

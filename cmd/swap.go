@@ -48,24 +48,42 @@ type I3Config struct {
 	ClientPlaceholder     string `json:"client.placeholder"`
 }
 
+var (
+	XResources         string = ".Xresources"
+	I3config           string = ".i3config"
+	XresourcesOriginal string = "/.Xresources" // this is used to find original configs
+	I3configOriginal   string = "/.i3/config"
+	XresourcesTmpl     string = "templates/Xresources.tmpl"
+	I3configTmpl       string = "templates/i3config.tmpl"
+	ThemeExt           string = ".json"
+	ThemeDir           string = "themes/"
+	TempDir            string = "tmp/"
+)
+
 var swapCmd = &cobra.Command{
 	Use:   "swap",
 	Short: "Swap resource files with chosen theme",
 	Run: func(cmd *cobra.Command, args []string) {
-		data, err := ioutil.ReadFile("./themes/" + args[0] + ".json")
+		// make a backup
+
+		// read theme file
+		data, err := ioutil.ReadFile(ThemeDir + args[0] + ThemeExt)
 		check(err)
+		// unmarshal theme into config struct
 		var config Config
 		err = json.Unmarshal(data, &config)
 		check(err)
-		t := template.Must(template.ParseFiles("templates/xresources.template"))
+		// parse Xresource
+		t := template.Must(template.ParseFiles(XresourcesTmpl))
 		dst, err := os.Create("tmp/.Xresources")
 		check(err)
 		defer dst.Close()
+		// apply parsed tmpl to data object and writes output to dst
 		err = t.Execute(dst, config.Xresource)
 		check(err)
 		err = dst.Sync()
 		check(err)
-		t = template.Must(template.ParseFiles("templates/i3config.template"))
+		t = template.Must(template.ParseFiles(I3configTmpl))
 		dst, err = os.Create("tmp/.i3config")
 		check(err)
 		defer dst.Close()
@@ -75,21 +93,17 @@ var swapCmd = &cobra.Command{
 		// remove old, move new
 		home, err := homedir.Dir()
 		check(err)
-		oldLocation1 := home + "/.Xresources"
-		oldLocation2 := home + "/.i3/config"
 		newLocation1 := "./tmp/old.Xresources"
 		newLocation2 := "./tmp/old.i3config"
-		newFile1 := "./tmp/.Xresources"
-		newFile2 := "./tmp/.i3config"
 		fmt.Println("Moving old config files to tmp directory...")
-		err = os.Rename(oldLocation1, newLocation1)
+		err = os.Rename(home+XresourcesOriginal, newLocation1)
 		check(err)
-		err = os.Rename(oldLocation2, newLocation2)
+		err = os.Rename(home+I3configOriginal, newLocation2)
 		check(err)
 		fmt.Println("Moving new configs to default location...")
-		err = os.Rename(newFile1, oldLocation1)
+		err = os.Rename(TempDir+XResources, home+XresourcesOriginal)
 		check(err)
-		err = os.Rename(newFile2, oldLocation2)
+		err = os.Rename(TempDir+I3config, home+I3configOriginal)
 		check(err)
 		fmt.Println("Success, please run 'xrdb ~/.Xresources', restart i3 and kill your current urxvt")
 		// run xrdb
