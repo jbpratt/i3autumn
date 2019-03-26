@@ -58,6 +58,8 @@ var (
 	ThemeExt           string = ".json"
 	ThemeDir           string = "themes/"
 	TempDir            string = "tmp/"
+	OldTempDir         string = "old/"
+	NewTempDir         string = "new/"
 )
 
 var swapCmd = &cobra.Command{
@@ -75,7 +77,7 @@ var swapCmd = &cobra.Command{
 		check(err)
 		// parse Xresource
 		t := template.Must(template.ParseFiles(XresourcesTmpl))
-		dst, err := os.Create("tmp/.Xresources")
+		dst, err := os.Create(TempDir + XResources)
 		check(err)
 		defer dst.Close()
 		// apply parsed tmpl to data object and writes output to dst

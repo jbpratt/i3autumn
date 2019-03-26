@@ -18,30 +18,62 @@ var backupCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		dt := time.Now()
 		d := dt.Format("01-02-2006")
-		fmt.Println("Making tmp directory...")
-		err := os.MkdirAll("./tmp/", os.ModePerm)
-		check(err)
 		home, err := homedir.Dir()
 		check(err)
-		copyXResources(home, d)
-		copyi3Config(home, d)
+		makePackageDirectories(home)
+		err = copyXresources(home, d)
+		if err != nil {
+			log.Fatal(err)
+		}
+		//copyi3Config(home, d)
 	},
 }
 
-func copyXResources(path, date string) {
-	src, err := os.Open(filepath.Join(path, "/.Xresources"))
-	check(err)
-	fmt.Println("Found file " + src.Name() + " ...")
+func makePackageDirectories(home string) error {
+	log.Println("Checking if temp directories already exist")
+	if _, err := os.Stat("tmp"); os.IsNotExist(err) {
+		log.Println("Making new temporary directory...")
+		err := os.MkdirAll("tmp/old/", os.ModePerm)
+		if err != nil {
+			return err
+		}
+		err = os.Mkdir("tmp/new/", os.ModePerm)
+		if err != nil {
+			return err
+		}
+		log.Println("tmp/{new,old} was made...")
+	}
+	log.Println("Temporary directory already exists")
+	return nil
+}
+
+func copyXresources(path, date string) error {
+	log.Println("Attempting to copy ~/.Xresources into tmp/old...")
+	if _, err := os.Stat(path + "/.Xresources"); os.IsNotExist(err) {
+		return err
+	}
+	log.Println(".Xresources was found...")
+	src, err := os.Open(path + "/.Xresources")
+	if err != nil {
+		return err
+	}
 	defer src.Close()
-	dst, err := os.Create("tmp/" + date + ".Xresources")
-	fmt.Println("Copying " + src.Name() + " to " + dst.Name())
-	check(err)
+	log.Println("Found file, attempting to copy...")
+	dst, err := os.Create("tmp/old/" + time.Now().String() + ".Xresources")
+	if err != nil {
+		return err
+	}
 	defer dst.Close()
 	_, err = io.Copy(dst, src)
-	check(err)
-	fmt.Println("Successfully copied files..")
+	if err != nil {
+		return err
+	}
 	err = dst.Sync()
-	check(err)
+	if err != nil {
+		return err
+	}
+	log.Println("Successfully copied .Xresources to the temporary directory")
+	return nil
 }
 
 func copyi3Config(path, date string) {

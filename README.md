@@ -10,3 +10,4 @@ TODO:
   - Refresh applications
   - Flag for which to swap
   - Back up prior to swapping
+  - i3Status included 
