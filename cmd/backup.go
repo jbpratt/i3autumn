@@ -1,11 +1,9 @@
 package cmd
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"os"
-	"path/filepath"
 	"time"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -25,7 +23,10 @@ var backupCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		//copyi3Config(home, d)
+		err = copyi3Config(home, d)
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
@@ -47,6 +48,7 @@ func makePackageDirectories(home string) error {
 	return nil
 }
 
+// consolidate these copy funcs to one
 func copyXresources(path, date string) error {
 	log.Println("Attempting to copy ~/.Xresources into tmp/old...")
 	if _, err := os.Stat(path + "/.Xresources"); os.IsNotExist(err) {
@@ -76,21 +78,39 @@ func copyXresources(path, date string) error {
 	return nil
 }
 
-func copyi3Config(path, date string) {
-	src, err := os.Open(filepath.Join(path, "/.i3/config"))
-	check(err)
-	fmt.Println("Found file " + src.Name() + " ...")
+func copyi3Config(path, date string) error {
+	log.Println("Attempting to copy ~/.i3/config into tmp/old...")
+	if _, err := os.Stat(path + "/.i3/config"); os.IsNotExist(err) {
+		return err
+	}
+	log.Println(".i3/config was found...")
+	src, err := os.Open(path + "/.i3/config")
+	if err != nil {
+		return err
+	}
 	defer src.Close()
-	dst, err := os.Create("tmp/" + date + ".i3.config")
-	fmt.Println("Copying " + src.Name() + " to " + dst.Name())
-	check(err)
+	log.Println("Found file, attempting to copy...")
+	dst, err := os.Create("tmp/old/" + time.Now().String() + ".i3config")
+	if err != nil {
+		return err
+	}
 	defer dst.Close()
 	_, err = io.Copy(dst, src)
-	check(err)
-	fmt.Println("Successfully copied files..")
+	if err != nil {
+		return err
+	}
 	err = dst.Sync()
-	check(err)
+	if err != nil {
+		return err
+	}
+	log.Println("Successfully copied .i3/config to the temporary directory")
+	return nil
 }
+
+func copyi3StatusConf(path, date string) error {
+	return nil
+}
+
 func init() {
 	RootCmd.AddCommand(backupCmd)
 }
