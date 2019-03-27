@@ -11,3 +11,4 @@ TODO:
   - Flag for which to swap
   - Back up prior to swapping
   - i3Status included 
+  - Parse various files into theme.json files
