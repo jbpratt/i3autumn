@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 
 	template "text/template"
@@ -13,11 +14,11 @@ import (
 )
 
 type Config struct {
-	Xresource Xresource `json:"xresources"`
-	I3Config  I3Config  `json:"i3wm"`
+	Xresources Xresources `json:"xresources"`
+	I3Config   I3Config   `json:"i3wm"`
 }
 
-type Xresource struct {
+type Xresources struct {
 	Background  string `json:"background"`
 	Foreground  string `json:"foreground"`
 	CursorColor string `json:"cursorcolor"`
@@ -69,28 +70,36 @@ var swapCmd = &cobra.Command{
 		// make a backup
 
 		// read theme file
-		data, err := ioutil.ReadFile(ThemeDir + args[0] + ThemeExt)
-		check(err)
 		// unmarshal theme into config struct
 		var config Config
-		err = json.Unmarshal(data, &config)
-		check(err)
+		err := readThemeConfig(args[0], &config)
+		if err != nil {
+			log.Fatal(err)
+		}
 		// parse Xresource
-		t := template.Must(template.ParseFiles(XresourcesTmpl))
-		dst, err := os.Create(TempDir + XResources)
-		check(err)
-		defer dst.Close()
+		//t := template.Must(template.ParseFiles(XresourcesTmpl))
+		//st, err := os.Create(TempDir + XResources)
+		//check(err)
+		//defer dst.Close()
 		// apply parsed tmpl to data object and writes output to dst
-		err = t.Execute(dst, config.Xresource)
-		check(err)
-		err = dst.Sync()
-		check(err)
-		t = template.Must(template.ParseFiles(I3configTmpl))
-		dst, err = os.Create("tmp/.i3config")
-		check(err)
-		defer dst.Close()
-		err = t.Execute(dst, config.I3Config)
-		check(err)
+		//err = t.Execute(dst, config.Xresources)
+		//check(err)
+		//err = dst.Sync()
+		//check(err)
+		err = parseAndExecute(XresourcesTmpl, config.Xresources)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = parseAndExecute(I3configTmpl, config.I3Config)
+		if err != nil {
+			log.Fatal(err)
+		}
+		//t = template.Must(template.ParseFiles(I3configTmpl))
+		//dst, err = os.Create("tmp/.i3config")
+		//check(err)
+		//defer dst.Close()
+		//err = t.Execute(dst, config.I3Config)
+		//check(err)
 		fmt.Println("Successfully generated new config files...")
 		// remove old, move new
 		home, err := homedir.Dir()
@@ -112,6 +121,40 @@ var swapCmd = &cobra.Command{
 		// maybe prompt to kill current urxvt session
 	},
 }
+
+// read config
+func readThemeConfig(theme string, config *Config) error {
+	data, err := ioutil.ReadFile(ThemeDir + theme + ThemeExt)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(data, &config)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// parse tmpl
+func parseAndExecute(tmpl string, config interface{}) error {
+	t := template.Must(template.ParseFiles(tmpl))
+	dst, err := os.Create(TempDir + XResources)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+	err = t.Execute(dst, config)
+	if err != nil {
+		return err
+	}
+	err = dst.Sync()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// move files
 
 func init() {
 	RootCmd.AddCommand(swapCmd)
