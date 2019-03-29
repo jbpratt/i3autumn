@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 
 	template "text/template"
 
@@ -53,8 +54,10 @@ var (
 	XresourcesFileName       string = "/.Xresources"
 	I3configFileName         string = "/.i3config"
 	I3configOriginalFileName string = "/.i3/config"
+	I3statusFileName         string = "/.i3status.conf"
 	XresourcesTmpl           string = "./templates/Xresources.tmpl"
 	I3configTmpl             string = "./templates/i3config.tmpl"
+	I3statusTmpl             string = "./templates/i3statusconf.tmpl"
 	ThemeExt                 string = ".json"
 	ThemeDir                 string = "./themes/"
 	PackageDir               string = "/.i3/autumn"
@@ -78,7 +81,6 @@ var swapCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-
 		err = parseAndExecute(XresourcesTmpl, home, XresourcesFileName, config)
 		if err != nil {
 			log.Fatal(err)
@@ -87,17 +89,20 @@ var swapCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+		err = parseAndExecute(I3statusTmpl, home, I3statusFileName, config)
+		if err != nil {
+			log.Fatal(err)
+		}
 		fmt.Println("Successfully generated new config files...")
-		// remove old, move new
-		//home, err := homedir.Dir()
-		//check(err)
-		//newLocation1 := "./tmp/old.Xresources"
-		//newLocation2 := "./tmp/old.i3config"
 		err = os.Rename(home+XresourcesFileName, home+PackageDir+OldTempDir+XresourcesFileName)
 		if err != nil {
 			log.Fatal(err)
 		}
 		err = os.Rename(home+I3configOriginalFileName, home+PackageDir+OldTempDir+I3configFileName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = os.Rename(home+I3statusFileName, home+PackageDir+OldTempDir+I3statusFileName)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -109,18 +114,17 @@ var swapCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Println("Complete")
-		//fmt.Println("Moving old config files to tmp directory...")
-		//err = os.Rename(home+XresourcesOriginal, newLocation1)
-		//check(err)
-		//err = os.Rename(home+I3configOriginal, newLocation2)
-		//check(err)`
-		//fmt.Println("Moving new configs to default location...")
-		//err = os.Rename(TempDir+XResources, home+XresourcesOriginal)
-		//check(err)
-		//err = os.Rename(TempDir+I3config, home+I3configOriginal)
-		//check(err)
-		//fmt.Println("Success, please run 'xrdb ~/.Xresources', restart i3 and kill your current urxvt")
+		err = os.Rename(home+PackageDir+NewTempDir+I3statusFileName, home+I3statusFileName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("Files have been moved...")
+		c := exec.Command("/bin/xrdb", home+XresourcesFileName)
+		err = c.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("Please restart your current session")
 		// run xrdb
 		// maybe prompt to kill current urxvt session
 	},
