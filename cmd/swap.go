@@ -13,11 +13,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type Config struct {
-	Xresources Xresources `json:"xresources"`
-	I3Config   I3Config   `json:"i3wm"`
-}
-
 type Xresources struct {
 	Background  string `json:"background"`
 	Foreground  string `json:"foreground"`
@@ -49,18 +44,22 @@ type I3Config struct {
 	ClientPlaceholder     string `json:"client.placeholder"`
 }
 
+type Config struct {
+	Xresources Xresources `json:"xresources"`
+	I3Config   I3Config   `json:"i3wm"`
+}
+
 var (
-	XResources         string = ".Xresources"
-	I3config           string = ".i3config"
-	XresourcesOriginal string = "/.Xresources" // this is used to find original configs
-	I3configOriginal   string = "/.i3/config"
-	XresourcesTmpl     string = "templates/Xresources.tmpl"
-	I3configTmpl       string = "templates/i3config.tmpl"
-	ThemeExt           string = ".json"
-	ThemeDir           string = "themes/"
-	TempDir            string = "tmp/"
-	OldTempDir         string = "old/"
-	NewTempDir         string = "new/"
+	XresourcesFileName       string = "/.Xresources"
+	I3configFileName         string = "/.i3config"
+	I3configOriginalFileName string = "/.i3/config"
+	XresourcesTmpl           string = "./templates/Xresources.tmpl"
+	I3configTmpl             string = "./templates/i3config.tmpl"
+	ThemeExt                 string = ".json"
+	ThemeDir                 string = "./themes/"
+	PackageDir               string = "/.i3/autumn"
+	OldTempDir               string = "/old"
+	NewTempDir               string = "/new"
 )
 
 var swapCmd = &cobra.Command{
@@ -68,55 +67,60 @@ var swapCmd = &cobra.Command{
 	Short: "Swap resource files with chosen theme",
 	Run: func(cmd *cobra.Command, args []string) {
 		// make a backup
-
+		home, err := homedir.Dir()
+		if err != nil {
+			log.Fatal(err)
+		}
 		// read theme file
 		// unmarshal theme into config struct
 		var config Config
-		err := readThemeConfig(args[0], &config)
+		err = readThemeConfig(args[0], &config)
 		if err != nil {
 			log.Fatal(err)
 		}
-		// parse Xresource
-		//t := template.Must(template.ParseFiles(XresourcesTmpl))
-		//st, err := os.Create(TempDir + XResources)
-		//check(err)
-		//defer dst.Close()
-		// apply parsed tmpl to data object and writes output to dst
-		//err = t.Execute(dst, config.Xresources)
-		//check(err)
-		//err = dst.Sync()
-		//check(err)
-		err = parseAndExecute(XresourcesTmpl, config.Xresources)
+
+		err = parseAndExecute(XresourcesTmpl, home, XresourcesFileName, config)
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = parseAndExecute(I3configTmpl, config.I3Config)
+		err = parseAndExecute(I3configTmpl, home, I3configFileName, config)
 		if err != nil {
 			log.Fatal(err)
 		}
-		//t = template.Must(template.ParseFiles(I3configTmpl))
-		//dst, err = os.Create("tmp/.i3config")
-		//check(err)
-		//defer dst.Close()
-		//err = t.Execute(dst, config.I3Config)
-		//check(err)
 		fmt.Println("Successfully generated new config files...")
 		// remove old, move new
-		home, err := homedir.Dir()
-		check(err)
-		newLocation1 := "./tmp/old.Xresources"
-		newLocation2 := "./tmp/old.i3config"
-		fmt.Println("Moving old config files to tmp directory...")
-		err = os.Rename(home+XresourcesOriginal, newLocation1)
-		check(err)
-		err = os.Rename(home+I3configOriginal, newLocation2)
-		check(err)
-		fmt.Println("Moving new configs to default location...")
-		err = os.Rename(TempDir+XResources, home+XresourcesOriginal)
-		check(err)
-		err = os.Rename(TempDir+I3config, home+I3configOriginal)
-		check(err)
-		fmt.Println("Success, please run 'xrdb ~/.Xresources', restart i3 and kill your current urxvt")
+		//home, err := homedir.Dir()
+		//check(err)
+		//newLocation1 := "./tmp/old.Xresources"
+		//newLocation2 := "./tmp/old.i3config"
+		err = os.Rename(home+XresourcesFileName, home+PackageDir+OldTempDir+XresourcesFileName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = os.Rename(home+I3configOriginalFileName, home+PackageDir+OldTempDir+I3configFileName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = os.Rename(home+PackageDir+NewTempDir+XresourcesFileName, home+XresourcesFileName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = os.Rename(home+PackageDir+NewTempDir+I3configFileName, home+I3configOriginalFileName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("Complete")
+		//fmt.Println("Moving old config files to tmp directory...")
+		//err = os.Rename(home+XresourcesOriginal, newLocation1)
+		//check(err)
+		//err = os.Rename(home+I3configOriginal, newLocation2)
+		//check(err)`
+		//fmt.Println("Moving new configs to default location...")
+		//err = os.Rename(TempDir+XResources, home+XresourcesOriginal)
+		//check(err)
+		//err = os.Rename(TempDir+I3config, home+I3configOriginal)
+		//check(err)
+		//fmt.Println("Success, please run 'xrdb ~/.Xresources', restart i3 and kill your current urxvt")
 		// run xrdb
 		// maybe prompt to kill current urxvt session
 	},
@@ -132,13 +136,14 @@ func readThemeConfig(theme string, config *Config) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("Successfully parsed theme")
 	return nil
 }
 
 // parse tmpl
-func parseAndExecute(tmpl string, config interface{}) error {
+func parseAndExecute(tmpl, home, name string, config Config) error {
 	t := template.Must(template.ParseFiles(tmpl))
-	dst, err := os.Create(TempDir + XResources)
+	dst, err := os.Create(home + PackageDir + NewTempDir + name)
 	if err != nil {
 		return err
 	}

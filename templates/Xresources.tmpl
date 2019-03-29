@@ -1,23 +1,23 @@
-*background:                      {{.Background}}
-*foreground:                      {{.Foreground}}
-*cursorColor:                     {{.CursorColor}}
+*background:                      {{.Xresources.Background}}
+*foreground:                      {{.Xresources.Foreground}}
+*cursorColor:                     {{.Xresources.CursorColor}}
 
-*color0:                          {{.Color0}}
-*color8:                          {{.Color9}}
-*color1:                          {{.Color1}}
-*color9:                          {{.Color9}}
-*color2:                          {{.Color2}}
-*color10:                         {{.Color10}}
-*color3:                          {{.Color3}}
-*color11:                         {{.Color11}}
-*color4:                          {{.Color4}}
-*color12:                         {{.Color12}}
-*color5:                          {{.Color5}}
-*color13:                         {{.Color13}}
-*color6:                          {{.Color6}}
-*color14:                         {{.Color14}}
-*color7:                          {{.Color7}}
-*color15:                         {{.Color15}}
+*color0:                          {{.Xresources.Color0}}
+*color8:                          {{.Xresources.Color9}}
+*color1:                          {{.Xresources.Color1}}
+*color9:                          {{.Xresources.Color9}}
+*color2:                          {{.Xresources.Color2}}
+*color10:                         {{.Xresources.Color10}}
+*color3:                          {{.Xresources.Color3}}
+*color11:                         {{.Xresources.Color11}}
+*color4:                          {{.Xresources.Color4}}
+*color12:                         {{.Xresources.Color12}}
+*color5:                          {{.Xresources.Color5}}
+*color13:                         {{.Xresources.Color13}}
+*color6:                          {{.Xresources.Color6}}
+*color14:                         {{.Xresources.Color14}}
+*color7:                          {{.Xresources.Color7}}
+*color15:                         {{.Xresources.Color15}}
 
 URxvt.font:                       9x15,xft:TerminessTTFNerdFontMono
 
@@ -39,12 +39,12 @@ URxvt.matcher.button: 1
 
 
 URxvt.depth:                      32
-URxvt.background:                 [100]{{.Background}}
+URxvt.background:                 [100]{{.Xresources.Background}}
 URxvt*scrollBar:                  false
 URxvt*mouseWheelScrollPage:       false
 URxvt*cursorBlink:                true
-URxvt*background:                 {{.Background}}
-URxvt*foreground:                 {{.Foreground}}
+URxvt*background:                 {{.Xresources.Background}}
+URxvt*foreground:                 {{.Xresources.Foreground}}
 URxvt*saveLines:                  5000
 
 URxvt.iso14755:                   false

@@ -14,7 +14,9 @@ var backupCmd = &cobra.Command{
 	Short: "adds a task to your task list",
 	Run: func(cmd *cobra.Command, args []string) {
 		home, err := homedir.Dir()
-		check(err)
+		if err != nil {
+			log.Fatal(err)
+		}
 		makePackageDirectories(home)
 		err = copyFile(home+"/.Xresources", home+"/.i3/autumn/old/.Xresources")
 		if err != nil {
