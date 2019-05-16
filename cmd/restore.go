@@ -10,7 +10,7 @@ var restoreCmd = &cobra.Command{
 	Use:   "restore",
 	Short: "restores from latest backup",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(args)
+		fmt.Println("TODO")
 	},
 }
 

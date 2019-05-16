@@ -2,15 +2,16 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 
 	template "text/template"
 
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 )
 
@@ -51,88 +52,58 @@ type Config struct {
 }
 
 var (
-	XresourcesFileName       string = "/.Xresources"
-	I3configFileName         string = "/.i3config"
-	I3configOriginalFileName string = "/.i3/config"
-	I3statusFileName         string = "/.i3status.conf"
-	XresourcesTmpl           string = "./templates/Xresources.tmpl"
-	I3configTmpl             string = "./templates/i3config.tmpl"
-	I3statusTmpl             string = "./templates/i3statusconf.tmpl"
-	ThemeExt                 string = ".json"
-	ThemeDir                 string = "./themes/"
-	PackageDir               string = "/.i3/autumn"
-	OldTempDir               string = "/old"
-	NewTempDir               string = "/new"
+	themeChoice    string
+	outLocation    string
+	templateChoice string
 )
 
 var swapCmd = &cobra.Command{
 	Use:   "swap",
-	Short: "Swap resource files with chosen theme",
+	Short: "Swap resource file with chosen theme",
+	Long: `
+	Swap command takes in a theme json file from the
+	theme directory and merges it into the theme template provided
+	in the template directory. The new file is then saved to the out
+	location provided and attempts to restart the application's session`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// make a backup
-		home, err := homedir.Dir()
-		if err != nil {
-			log.Fatal(err)
+
+		if themeChoice == "" {
+			log.Fatal(errors.New("no theme was given"))
 		}
-		// read theme file
-		// unmarshal theme into config struct
+
+		if templateChoice == "" {
+			log.Fatal(errors.New("no template was given"))
+		}
+
+		if outLocation == "" {
+			log.Fatal(errors.New("no out location was given"))
+		}
+
 		var config Config
-		err = readThemeConfig(args[0], &config)
+		err := readThemeConfig(themeChoice, &config)
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = parseAndExecute(XresourcesTmpl, home, XresourcesFileName, config)
+
+		err = parseAndExecute(templateChoice, outLocation, config)
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = parseAndExecute(I3configTmpl, home, I3configFileName, config)
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = parseAndExecute(I3statusTmpl, home, I3statusFileName, config)
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println("Successfully generated new config files...")
-		err = os.Rename(home+XresourcesFileName, home+PackageDir+OldTempDir+XresourcesFileName)
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = os.Rename(home+I3configOriginalFileName, home+PackageDir+OldTempDir+I3configFileName)
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = os.Rename(home+I3statusFileName, home+PackageDir+OldTempDir+I3statusFileName)
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = os.Rename(home+PackageDir+NewTempDir+XresourcesFileName, home+XresourcesFileName)
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = os.Rename(home+PackageDir+NewTempDir+I3configFileName, home+I3configOriginalFileName)
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = os.Rename(home+PackageDir+NewTempDir+I3statusFileName, home+I3statusFileName)
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println("Files have been moved...")
-		c := exec.Command("/bin/xrdb", home+XresourcesFileName)
-		err = c.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
+
 		fmt.Println("Please restart your current session")
-		// run xrdb
-		// maybe prompt to kill current urxvt session
+
+		if strings.Contains(templateChoice, "Xresources") {
+			cmd := exec.Command("/usr/bin/xrdb", "-merge", outLocation)
+			err = cmd.Run()
+			if err != nil {
+				log.Fatalf("failed to merge changes into current xrdb session: %v", err)
+			}
+		}
 	},
 }
 
-// read config
-func readThemeConfig(theme string, config *Config) error {
-	data, err := ioutil.ReadFile(ThemeDir + theme + ThemeExt)
+func readThemeConfig(tc string, config *Config) error {
+	data, err := ioutil.ReadFile(tc)
 	if err != nil {
 		return err
 	}
@@ -144,10 +115,9 @@ func readThemeConfig(theme string, config *Config) error {
 	return nil
 }
 
-// parse tmpl
-func parseAndExecute(tmpl, home, name string, config Config) error {
+func parseAndExecute(tmpl, outPath string, config Config) error {
 	t := template.Must(template.ParseFiles(tmpl))
-	dst, err := os.Create(home + PackageDir + NewTempDir + name)
+	dst, err := os.Create(outPath)
 	if err != nil {
 		return err
 	}
@@ -160,11 +130,13 @@ func parseAndExecute(tmpl, home, name string, config Config) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("Successfully generated new theme")
 	return nil
 }
 
-// move files
-
 func init() {
+	swapCmd.Flags().StringVarP(&themeChoice, "theme", "t", "", "path of theme to parse")
+	swapCmd.Flags().StringVarP(&templateChoice, "template", "c", "", "application config template to use")
+	swapCmd.Flags().StringVarP(&outLocation, "out", "o", "", "location to write the config to")
 	RootCmd.AddCommand(swapCmd)
 }
