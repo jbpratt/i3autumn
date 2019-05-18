@@ -1,3 +1,4 @@
+meme#1e1e20
 *color0:                          #1e1e20
 *color8:                          #e6a57a
 *color1:                          #e6a57a

@@ -9,14 +9,17 @@ import (
 )
 
 func ParseSetting(line string) Setting {
+	spaceReg := regexp.MustCompile(`^\*[a-zA-Z0-9]+\d{1,2}[[:space:]]#[a-zA-Z0-9]+$`)
 	keyReg := regexp.MustCompile(`^\*color\d{1,2}`)
 	valueReg := regexp.MustCompile(`^#[a-zA-Z0-9]+`)
-	result := strings.Fields(line)
+	if spaceReg.Match([]byte(line)) {
+		result := strings.Fields(line)
+		key := strings.Trim(keyReg.FindString(result[0]), "*")
+		value := valueReg.FindString(result[1])
 
-	key := strings.Trim(keyReg.FindString(result[0]), "*")
-	value := valueReg.FindString(result[1])
+		return Setting{Key: key, Value: value}
+	}
 
-	return Setting{Key: key, Value: value}
 }
 
 func ReadConfig(path string) ([]Setting, error) {
